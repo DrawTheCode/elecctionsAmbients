@@ -2,7 +2,7 @@ services:
   elecciones-api:
     build:
       context: ./apis/elecciones
-      dockerfile: Dockerfile.dev #development
+      dockerfile: ../../dockerFiles/Dockerfile.dev
     container_name: ${APP_NAME}-elecciones
     restart: on-failure:5
     environment:
@@ -19,7 +19,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./api/elecciones/:/home/app
+      - ./apis/elecciones/:/home/app
     networks:
       - proxy
     labels:
@@ -28,6 +28,22 @@ services:
       - traefik.http.routers.${APP_NAME}.tls=false
       - traefik.http.services.${APP_NAME}.loadbalancer.server.port=3050
     
+  elecciones-cron:
+    build:
+      context: ./apis/elecciones
+      dockerfile: ../../dockerFiles/Dockerfile.dev
+    container_name: ${APP_NAME}-cron
+    restart: on-failure:5
+    environment:
+      - FTP_USER=${SERVEL_FTP_USER}
+      - FTP_PASS=${SERVEL_FTP_PASS}
+      - FTP_HOST=${SERVEL_FTP_HOST}
+      - FTP_PATH=${SERVEL_FTP_PATH}
+    volumes:
+      - ./apis/elecciones/data:/home/app/data:rw
+      - ./apis/elecciones/:/home/app
+    command: "ts-node-dev src/subscribers/checkFTP.ts"
+
   reverse-proxy:
     image: traefik:v2.11.0
     restart: unless-stopped
@@ -66,7 +82,7 @@ services:
     image: rediscommander/redis-commander:latest
     restart: always
     environment:
-      - REDIS_HOSTS=${REDIS_URL}
+      - REDIS_HOSTS=local:redis:6379
       - HTTP_USER=root
       - HTTP_PASSWORD=qwerty
     ports:
