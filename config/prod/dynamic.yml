@@ -1,0 +1,19 @@
+http:
+  routers:
+    traefik:
+      rule: Host(`traefik.{{ env "BACKEND_FULL_DOMAIN" }}`)
+      service: "api@internal"
+      tls:
+        certResolver: "letsencrypt"
+        domains:
+          - main: '{{ env "BACKEND_FULL_DOMAIN" }}'
+            sans:
+              - '*.{{ env "BACKEND_FULL_DOMAIN" }}'
+              - '*.match.{{ env "BACKEND_FULL_DOMAIN" }}'
+              - '*.panel.{{ env "BACKEND_FULL_DOMAIN" }}'
+
+  middlewares:
+    simpleAuth:
+      basicAuth:
+        users:
+          - '{{ env "HTPASSWD" }}'

@@ -1,0 +1,3 @@
+[submodule "apis/elecciones"]
+	path = apis/elecciones
+	url = git@github.com:DrawTheCode/EleccionesChile.git

@@ -1,0 +1,15 @@
+http:
+  middlewares:
+    simpleAuth:
+      basicAuth:
+        users:
+          - "admin:$apr1$rn7.XBWz$EY1BTKVXJdgqZf/zLZkLU/"
+
+  routers:
+    traefik:
+      rule: "Host(`traefik.prima.localhost`)"
+      service: "api@internal"
+      entryPoints:
+        - "http"
+      middlewares:
+        - "simpleAuth"

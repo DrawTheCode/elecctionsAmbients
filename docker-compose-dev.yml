@@ -1,0 +1,81 @@
+services:
+  elecciones-api:
+    build:
+      context: ./apis/elecciones
+      dockerfile: Dockerfile.dev #development
+    container_name: ${APP_NAME}-elecciones
+    restart: on-failure:5
+    environment:
+      - PORT=${SERVEL_PORT}
+      - FTP_USER=${SERVEL_FTP_USER}
+      - FTP_PASS=${SERVEL_FTP_PASS}
+      - FTP_HOST=${SERVEL_FTP_HOST}
+      - FTP_PATH=${SERVEL_FTP_PATH}
+      - ENV=${SERVEL_ENV}
+      - CORS=${SERVEL_CORS}
+      - REDIS_URL=${REDIS_URL}
+    ports:
+      - "3050:3050"
+    depends_on:
+      - redis
+    volumes:
+      - ./api/elecciones/:/home/app
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${APP_NAME}.rule=Host(`elecciones.${APP_NAME}.${BASE_DOMAIN}`)
+      - traefik.http.routers.${APP_NAME}.tls=false
+      - traefik.http.services.${APP_NAME}.loadbalancer.server.port=3050
+    
+  reverse-proxy:
+    image: traefik:v2.11.0
+    restart: unless-stopped
+    container_name: ${APP_NAME}-traefik
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/local/static.yml:/etc/traefik/traefik.yml:ro
+      - ./config/local/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks:
+      - proxy
+    environment:
+      - APP_NAME=${APP_NAME}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+
+  redis:
+    image: redis:7.0.15-alpine3.20
+    container_name: ${APP_NAME}-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: ["redis-server", "--appendonly", "yes"]
+  
+  redis-commander:
+    container_name: ${APP_NAME}-redisCommander
+    hostname: ${APP_NAME}-redisCommander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=${REDIS_URL}
+      - HTTP_USER=root
+      - HTTP_PASSWORD=qwerty
+    ports:
+      - 8081:8081
+    depends_on:
+      - redis
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
