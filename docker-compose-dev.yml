@@ -24,9 +24,9 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      - traefik.http.routers.${APP_NAME}.rule=Host(`elecciones.${APP_NAME}.${BASE_DOMAIN}`)
-      - traefik.http.routers.${APP_NAME}.tls=false
-      - traefik.http.services.${APP_NAME}.loadbalancer.server.port=3050
+      - traefik.http.routers.${APP_NAME}-primarias.rule=Host(`elecciones.${APP_NAME}.${BASE_DOMAIN}`)
+      - traefik.http.routers.${APP_NAME}-primarias.tls=false
+      - traefik.http.services.${APP_NAME}-primarias.loadbalancer.server.port=3050
     
   elecciones-cron:
     build:
@@ -91,6 +91,11 @@ services:
       - redis
     networks:
       - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${APP_NAME}-commander.rule=Host(`redis-commander.${APP_NAME}.${BASE_DOMAIN}`)
+      - traefik.http.routers.${APP_NAME}-commander.tls=false
+      - traefik.http.services.${APP_NAME}-commander.loadbalancer.server.port=8081
 
 networks:
   proxy:
