@@ -11,7 +11,7 @@ services:
       - FTP_PASS=${SERVEL_FTP_PASS}
       - FTP_HOST=${SERVEL_FTP_HOST}
       - FTP_PATH=${SERVEL_FTP_PATH}
-      - ENV=${SERVEL_ENV}
+      - ENV=${NODE_ENV}
       - CORS=${SERVEL_CORS}
       - REDIS_URL=${REDIS_URL}
     ports:
